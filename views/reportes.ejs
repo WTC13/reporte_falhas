@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Reportes</title>
+  <style>
+    table { border-collapse: collapse; width: 60%; }
+    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Reportes</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (reportes.length > 0) { %>
+        <% reportes.forEach(reporte => { %>
+          <tr>
+            <td><%= reporte.protocolo %></td>
+            <td><%= reporte.nome %></td>
+            <td><%= reporte.email %></td>
+            <td><%= reporte.senha %></td>
+            <td><%= reporte.cnpj %></td>
+            <td><%= reporte.data %></td>
+            <td><%= reporte.modulo %></td>
+            <td><%= reporte.descricao %></td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr><td colspan="5">Nenhum cliente encontrado.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</body>
+</html>
