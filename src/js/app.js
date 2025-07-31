@@ -1,3 +1,4 @@
+const { prototype } = require('events');
 const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
@@ -5,9 +6,11 @@ const app = express();
 const port = 3000;
 
 app.use(express.urlencoded({ extended: true}));
-app.use(express.static(path.join(__dirname, 'src')));
+app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '../src')));
+app.use(express.json());
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '..', '..', 'views'));
 
 const conexao = mysql.createConnection({
     host:'localhost',
@@ -16,8 +19,47 @@ const conexao = mysql.createConnection({
     database: 'reporte_falhas'
 })
 
-app.get('../../views/', (req, res) => {
+app.get('/', (req, res) => {
+  res.render('login');
+});
+
+app.get('/reportar', (req, res) =>{
   res.render('forms');
+});
+
+app.get('/andamento', (req, res) => {
+  const protocolo = req.query.protocolo;
+
+  if (!protocolo) {
+    return res.json({ sucesso: false, mensagem: 'Protocolo não informado!' });
+  }
+
+  const sql = 'SELECT * FROM reportes WHERE protocolo = ? LIMIT 1';
+
+  conexao.query(sql, [protocolo], (err, resultados) => {
+    if (err) {
+      console.error('Erro ao consultar:', err);
+      return res.status(500).json({ sucesso: false, mensagem: 'Erro no servidor.' });
+    }
+
+    if (resultados.length === 0) {
+      return res.json({ sucesso: false, mensagem: 'Protocolo não encontrado.' });
+    }
+
+    const dados = resultados[0];
+    res.json({
+      sucesso: true,
+      dados: {
+        nome: dados.nome,
+        email: dados.email,
+        cnpj: dados.cnpj,
+        data_reporte: dados.data_reporte,
+        modulo: dados.modulo,
+        outro_modulo: dados.modulo_outros,
+        mensagem: dados.mensagem
+      }
+    });
+  });
 });
 
 
@@ -42,11 +84,11 @@ app.post('/salvar', (req, res) => {
 
   const sql_insert = `
     INSERT INTO reportes
-    (protocolo, nome, email, senha, cnpj, data, modulo, descricao)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    (protocolo, nome, email, senha, cnpj, data_reporte, modulo, modulo_outros, mensagem)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
   `;
 
-    const valores = [protocolo, name, email, senha, cnpj, data, modulo_final, descricao];
+    const valores = [protocolo, name, email, senha, cnpj, data, modulo_final, outro_modulo, descricao];
 
     conexao.query(sql_insert, valores, (err) => {
       if (err){
